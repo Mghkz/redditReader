@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements SubRedditListFrag
             // Create a new fragment and specify the planet to show based on position
             SubRedditListFragment fragment = new SubRedditListFragment();
             Bundle args = new Bundle();
-            args.putString("content", mService.getHello());
+            args.putString("content", mService.getJsonSubreddit(Constants.subreddits[position]));
             fragment.setArguments(args);
 
             // Insert the fragment by replacing any existing fragment
