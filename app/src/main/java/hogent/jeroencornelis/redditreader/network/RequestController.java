@@ -1,4 +1,4 @@
-package hogent.jeroencornelis.redditreader;
+package hogent.jeroencornelis.redditreader.network;
 
 
 import android.app.Application;

@@ -14,6 +14,8 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import hogent.jeroencornelis.redditreader.network.RequestController;
+
 /**
  * Created by Jeroen-Lenovo on 27/11/2015.
  */
