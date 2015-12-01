@@ -1,31 +1,18 @@
 package hogent.jeroencornelis.redditreader;
 
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 
 import android.os.IBinder;
-import android.util.Log;
-import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.ParseError;
-import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
-import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.UnsupportedEncodingException;
-import java.util.Map;
-import java.util.Random;
 
 /**
  * Created by Jeroen-Lenovo on 27/11/2015.
@@ -75,7 +62,7 @@ public class SubredditService extends Service {
             }
         });
 
-        AppController.getInstance().addToRequestQueue(jsObjRequest);
+        RequestController.getInstance().addToRequestQueue(jsObjRequest);
         return text;
     }
 
