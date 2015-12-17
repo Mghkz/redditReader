@@ -1,20 +1,20 @@
 package hogent.jeroencornelis.redditreader.domain;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Created by Jeroen-Lenovo on 1/12/2015.
  */
 public class Posts {
 
-    private List<Post> posts;
+    private ArrayList<Post> posts;
 
     public Posts() {
-        this.posts = new LinkedList<>();
+
+        this.posts = new ArrayList<>();
     }
 
-    public Posts(List<Post> posts) {
+    public Posts(ArrayList<Post> posts) {
         this.posts = posts;
     }
 
@@ -23,5 +23,9 @@ public class Posts {
     }
     public void removePost(Post post){
         posts.remove(post);
+    }
+
+    public ArrayList<Post> getPosts() {
+        return posts;
     }
 }
