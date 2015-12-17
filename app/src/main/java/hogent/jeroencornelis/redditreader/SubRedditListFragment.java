@@ -4,6 +4,8 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,27 +17,24 @@ import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import hogent.jeroencornelis.redditreader.domain.Post;
+import butterknife.Bind;
+import butterknife.ButterKnife;
 import hogent.jeroencornelis.redditreader.domain.Posts;
 import hogent.jeroencornelis.redditreader.network.RedditPostsDeserializer;
 import hogent.jeroencornelis.redditreader.network.RequestController;
-import hogent.jeroencornelis.redditreader.network.ResponsePosts;
 
 
 public class SubRedditListFragment extends Fragment {
 
+    @Bind(R.id.rvPosts)
+    RecyclerView rvPosts;
 
-    private TextView content;
     private OnFragmentInteractionListener mListener;
-
+    private Context context;
     public SubRedditListFragment() {
         // Required empty public constructor
     }
@@ -55,11 +54,11 @@ public class SubRedditListFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_sub_reddit_list, container, false);
-        content = (TextView) view.findViewById(R.id.contentFld);
+        ButterKnife.bind(this, view);
+        this.context = container.getContext();
         Bundle args = this.getArguments();
-        if(content != null)
+        if(args != null)
             doJsonRequest(args.getString("rNaam"));
-            //content.setText(args.getString("rNaam"));
         return view;
     }
 
@@ -95,7 +94,7 @@ public class SubRedditListFragment extends Fragment {
 
         void onFragmentInteraction(Uri uri);
     }
-    public void doJsonRequest(String rNaam)
+    public void doJsonRequest(final String rNaam)
     {
         String url = "https://www.reddit.com/r/" + rNaam + "/new.json";
         JsonObjectRequest jsObjRequest = new JsonObjectRequest(url,null,
@@ -104,35 +103,16 @@ public class SubRedditListFragment extends Fragment {
                     public void onResponse(JSONObject response) {
                         try {
                             VolleyLog.v("Response:%n %s", response.toString(4));
-                            //content.setText(response.toString());
                             /* GSON */
-                            /*
+                            //TODO: MOVE GSONBUILDER
                             GsonBuilder gsonBuilder = new GsonBuilder();
                             gsonBuilder.registerTypeAdapter(Posts.class, new RedditPostsDeserializer());
                             Gson gson = gsonBuilder.create();
-                            ResponsePosts responsePosts = gson.fromJson(response.toString(), ResponsePosts.class);
-                            content.setText(responsePosts.getResponse().getPosts().get(0).getTitle());
-                            */
-                            JsonParser jsonParser = new JsonParser();
-                            JsonObject jsonObject = (JsonObject) jsonParser.parse(response.toString());
+                            Posts posts = gson.fromJson(response.toString(), Posts.class);
+                            PostAdapter adapter = new PostAdapter(posts.getPosts());
+                            rvPosts.setAdapter(adapter);
+                            rvPosts.setLayoutManager(new LinearLayoutManager(context));
 
-                            JsonObject data = (JsonObject) jsonObject.get("data");
-                            JsonArray children = data.getAsJsonArray("children");
-                            Posts posts = new Posts();
-
-                            for(JsonElement obj : children)
-                            {
-                                JsonObject jObj = (JsonObject) obj;
-                                JsonObject jObjData = (JsonObject) jObj.get("data");
-                                Post p = new Post(
-                                        jObjData.get("title").getAsString(),
-                                        jObjData.get("selftext").getAsString(),
-                                        jObjData.get("author").getAsString()
-                                );
-                                posts.addPost(p);
-
-                            }
-                            content.setText(posts.getPosts().get(0).getTitle());
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
