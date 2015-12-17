@@ -29,8 +29,10 @@ public class RedditPostsDeserializer implements JsonDeserializer<Posts> {
             JsonObject jObjData = (JsonObject) jObj.get("data");
             Post p = new Post(
                     jObjData.get("title").getAsString(),
-                    jObjData.get("selftext").getAsString(),
-                    jObjData.get("author").getAsString()
+                    //jObjData.get("selftext").getAsString(),
+                    jObjData.get("author").getAsString(),
+                    jObjData.get("score").getAsInt(),
+                    jObjData.get("num_comments").getAsInt()
             );
             posts.addPost(p);
 
