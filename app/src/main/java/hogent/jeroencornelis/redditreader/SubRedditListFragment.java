@@ -39,6 +39,7 @@ public class SubRedditListFragment extends Fragment {
     private OnFragmentInteractionListener mListener;
     private Context context;
     private String rNaam;
+
     public SubRedditListFragment() {
         // Required empty public constructor
     }
