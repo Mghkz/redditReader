@@ -7,6 +7,9 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -35,6 +38,7 @@ public class SubRedditListFragment extends Fragment {
 
     private OnFragmentInteractionListener mListener;
     private Context context;
+    private String rNaam;
     public SubRedditListFragment() {
         // Required empty public constructor
     }
@@ -47,6 +51,7 @@ public class SubRedditListFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -57,11 +62,12 @@ public class SubRedditListFragment extends Fragment {
         ButterKnife.bind(this, view);
         this.context = container.getContext();
         Bundle args = this.getArguments();
-        if(args != null)
-            doJsonRequest(args.getString("rNaam"));
+        if(args != null) {
+            rNaam = args.getString("rNaam");
+            doJsonRequest(rNaam);
+        }
         return view;
     }
-
 
     @Override
     public void onAttach(Context context) {
@@ -80,23 +86,30 @@ public class SubRedditListFragment extends Fragment {
         mListener = null;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-
-        void onFragmentInteraction(Uri uri);
+    //region Action Bar
+    //Loading the action bar
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_subreddit,menu);
+        super.onCreateOptionsMenu(menu, inflater);
     }
+    //Handling on click of an item in the action bar
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.refreshBtn:
+                doJsonRequest(rNaam);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+    //endregion
+
     public void doJsonRequest(final String rNaam)
     {
-        String url = "https://www.reddit.com/r/" + rNaam + "/new.json";
+        String url = "https://www.reddit.com/r/" + rNaam + "/hot.json";
         JsonObjectRequest jsObjRequest = new JsonObjectRequest(url,null,
                 new Response.Listener<JSONObject>() {
                     @Override
@@ -124,5 +137,20 @@ public class SubRedditListFragment extends Fragment {
             }
         });
         RequestController.getInstance().addToRequestQueue(jsObjRequest);
+    }
+
+    /**
+     * This interface must be implemented by activities that contain this
+     * fragment to allow an interaction in this fragment to be communicated
+     * to the activity and potentially other fragments contained in that
+     * activity.
+     * <p/>
+     * See the Android Training lesson <a href=
+     * "http://developer.android.com/training/basics/fragments/communicating.html"
+     * >Communicating with Other Fragments</a> for more information.
+     */
+    public interface OnFragmentInteractionListener {
+
+        void onFragmentInteraction(Uri uri);
     }
 }

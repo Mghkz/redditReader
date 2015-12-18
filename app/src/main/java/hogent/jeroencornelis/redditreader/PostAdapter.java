@@ -49,9 +49,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder>{
 
             mListener = listener;
 
-            //authorTextView = (TextView) itemView.findViewById(R.id.contact_name);
-            //imageView = (ImageView) itemView.findViewById(R.id.thumbnail);
-
             //Add listeners
             relativeLayout.setOnClickListener(this);
             imageView.setOnClickListener(this);
