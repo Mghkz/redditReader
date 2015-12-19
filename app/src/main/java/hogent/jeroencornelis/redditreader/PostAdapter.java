@@ -100,6 +100,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder>{
         });
         return viewHolder;
     }
+    //End View Holder
 
     // Involves populating data into the item through holder
     @Override

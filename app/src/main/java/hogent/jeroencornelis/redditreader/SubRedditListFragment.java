@@ -6,26 +6,30 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
-
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import hogent.jeroencornelis.redditreader.domain.Post;
 import hogent.jeroencornelis.redditreader.domain.Posts;
 import hogent.jeroencornelis.redditreader.network.RedditPostsDeserializer;
 import hogent.jeroencornelis.redditreader.network.RequestController;
@@ -37,8 +41,29 @@ public class SubRedditListFragment extends Fragment {
     RecyclerView rvPosts;
 
     private OnFragmentInteractionListener mListener;
-    private Context context;
+    //Subreddit name
     private String rNaam;
+    //Attribute for loading posts after a certain post
+    private String sAfter = "";
+    //GET Url for Reddit API
+    String url = "";
+    //Posts
+    Posts posts;
+
+    private Context context;
+    private LinearLayoutManager mLayoutManager;
+
+    //Gson parser for json data
+    private Gson gson;
+
+    //Items needed for endless scrolling
+    private boolean loading = true;
+    private int pastVisiblesItems;
+    private int visibleItemCount;
+    private int totalItemCount;
+
+
+
 
     public SubRedditListFragment() {
         // Required empty public constructor
@@ -51,6 +76,11 @@ public class SubRedditListFragment extends Fragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        //Making the gson parser
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.registerTypeAdapter(Posts.class, new RedditPostsDeserializer());
+        gson = gsonBuilder.create();
+
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
     }
@@ -65,8 +95,32 @@ public class SubRedditListFragment extends Fragment {
         Bundle args = this.getArguments();
         if(args != null) {
             rNaam = args.getString("rNaam");
-            doJsonRequest(rNaam);
+            doJsonRequest(rNaam,false);
         }
+        //Init Recyclerview
+        mLayoutManager = new LinearLayoutManager(context);
+        rvPosts.setLayoutManager(mLayoutManager);
+
+        rvPosts.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                if (dy > 0) //check for scroll down
+                {
+                    visibleItemCount = mLayoutManager.getChildCount();
+                    totalItemCount = mLayoutManager.getItemCount();
+                    pastVisiblesItems = mLayoutManager.findFirstVisibleItemPosition();
+
+                    if (loading) {
+                        if ((visibleItemCount + pastVisiblesItems) >= totalItemCount) {
+                            loading = false;
+                            Log.v("Recyclerview", "Last Item Reached!");
+                            doJsonRequest(rNaam, true);
+                        }
+                    }
+                }
+            }
+        });
+
         return view;
     }
 
@@ -100,7 +154,7 @@ public class SubRedditListFragment extends Fragment {
         // Handle item selection
         switch (item.getItemId()) {
             case R.id.refreshBtn:
-                doJsonRequest(rNaam);
+                doJsonRequest(rNaam,false);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -108,9 +162,14 @@ public class SubRedditListFragment extends Fragment {
     }
     //endregion
 
-    public void doJsonRequest(final String rNaam)
+    public void doJsonRequest(final String rNaam, final boolean after)
     {
-        String url = "https://www.reddit.com/r/" + rNaam + "/hot.json";
+        //TODO: REPLACE WITH STRING BUILDER
+        if(!after)
+        url = "https://www.reddit.com/r/" + rNaam + "/hot.json";
+        else
+        url = "https://www.reddit.com/r/" + rNaam + "/hot.json?after="+after;
+
         JsonObjectRequest jsObjRequest = new JsonObjectRequest(url,null,
                 new Response.Listener<JSONObject>() {
                     @Override
@@ -118,14 +177,22 @@ public class SubRedditListFragment extends Fragment {
                         try {
                             VolleyLog.v("Response:%n %s", response.toString(4));
                             /* GSON */
-                            //TODO: MOVE GSONBUILDER
-                            GsonBuilder gsonBuilder = new GsonBuilder();
-                            gsonBuilder.registerTypeAdapter(Posts.class, new RedditPostsDeserializer());
-                            Gson gson = gsonBuilder.create();
-                            Posts posts = gson.fromJson(response.toString(), Posts.class);
+                            Posts postsFromJson = gson.fromJson(response.toString(), Posts.class);
+                            if(!after) {
+                                posts = postsFromJson;
+                            }
+                            else {
+                                posts.getPosts().addAll(postsFromJson.getPosts());
+                            }
+
                             PostAdapter adapter = new PostAdapter(posts.getPosts());
                             rvPosts.setAdapter(adapter);
-                            rvPosts.setLayoutManager(new LinearLayoutManager(context));
+                            adapter.notifyDataSetChanged();
+
+                            JsonParser jsonParser = new JsonParser();
+                            JsonObject gsonObject = (JsonObject)jsonParser.parse(response.toString());
+                            JsonObject data = (JsonObject) gsonObject.get("data");
+                            sAfter = data.get("after").getAsString();
 
                         } catch (JSONException e) {
                             e.printStackTrace();

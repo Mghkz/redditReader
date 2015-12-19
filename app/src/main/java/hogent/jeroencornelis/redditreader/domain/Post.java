@@ -25,7 +25,7 @@ public class Post {
         this.author = author;
     }
 
-    public Post(String id, String title, String selfText, String author, String thumbnail, int score, int comments) {
+    public Post(String id, String title, String selfText, String author, String thumbnail, Integer score, Integer comments) {
         this(id, title, selfText, author);
         this.thumbnail = thumbnail;
         this.score = score;
