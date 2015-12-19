@@ -57,8 +57,10 @@ public class SubRedditListFragment extends Fragment {
     private Gson gson;
 
     //Items needed for endless scrolling
+    private int previousTotal = 0;
     private boolean loading = true;
-    private int pastVisiblesItems;
+    private int visibleThreshold = 5;
+    private int firstVisibleItem;
     private int visibleItemCount;
     private int totalItemCount;
 
@@ -108,14 +110,20 @@ public class SubRedditListFragment extends Fragment {
                 {
                     visibleItemCount = mLayoutManager.getChildCount();
                     totalItemCount = mLayoutManager.getItemCount();
-                    pastVisiblesItems = mLayoutManager.findFirstVisibleItemPosition();
+                    firstVisibleItem = mLayoutManager.findFirstVisibleItemPosition();
 
                     if (loading) {
-                        if ((visibleItemCount + pastVisiblesItems) >= totalItemCount) {
+                        if (totalItemCount > previousTotal) {
                             loading = false;
-                            Log.v("Recyclerview", "Last Item Reached!");
-                            doJsonRequest(rNaam, true);
+                            previousTotal = totalItemCount;
                         }
+                    }
+                    if (!loading && (totalItemCount - visibleItemCount)
+                            <= (firstVisibleItem + visibleThreshold)) {
+                        // End has been reached
+                        Log.d("Recyclerview!", "End of List Reached");
+                        doJsonRequest(rNaam, true);
+                        loading = true;
                     }
                 }
             }
@@ -168,7 +176,7 @@ public class SubRedditListFragment extends Fragment {
         if(!after)
         url = "https://www.reddit.com/r/" + rNaam + "/hot.json";
         else
-        url = "https://www.reddit.com/r/" + rNaam + "/hot.json?after="+after;
+        url = "https://www.reddit.com/r/" + rNaam + "/hot.json?after="+sAfter;
 
         JsonObjectRequest jsObjRequest = new JsonObjectRequest(url,null,
                 new Response.Listener<JSONObject>() {
@@ -183,16 +191,20 @@ public class SubRedditListFragment extends Fragment {
                             }
                             else {
                                 posts.getPosts().addAll(postsFromJson.getPosts());
-                            }
 
-                            PostAdapter adapter = new PostAdapter(posts.getPosts());
-                            rvPosts.setAdapter(adapter);
-                            adapter.notifyDataSetChanged();
+                            }
 
                             JsonParser jsonParser = new JsonParser();
                             JsonObject gsonObject = (JsonObject)jsonParser.parse(response.toString());
                             JsonObject data = (JsonObject) gsonObject.get("data");
                             sAfter = data.get("after").getAsString();
+
+
+                            PostAdapter adapter = new PostAdapter(posts.getPosts());
+                            rvPosts.setAdapter(adapter);
+                            adapter.notifyDataSetChanged();
+                            mLayoutManager.scrollToPosition(posts.getPosts().size()-25);
+
 
                         } catch (JSONException e) {
                             e.printStackTrace();
