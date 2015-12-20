@@ -6,9 +6,9 @@ import java.util.UUID;
  * Created by Jeroen-Lenovo on 1/12/2015.
  */
 public class Post {
-    private String id;
+    private Long id;
+    private String postId;
     private String title;
-    private String selfText;
     private String author;
     private String thumbnail;
     private Integer score;
@@ -17,28 +17,40 @@ public class Post {
     public Post() {
 
     }
-
-    public Post(String id, String title, String selfText, String author) {
+    public Post(Long id) {
         this.id = id;
+    }
+
+    public Post(Long id,String postId, String title, String author) {
+        this.id = id;
+        this.postId = postId;
         this.title = title;
-        this.selfText = selfText;
         this.author = author;
     }
 
-    public Post(String id, String title, String selfText, String author, String thumbnail, Integer score, Integer comments) {
-        this(id, title, selfText, author);
+    public Post(Long id,String postId, String title, String author, String thumbnail, Integer score, Integer comments) {
+        this(id,postId, title, author);
         this.thumbnail = thumbnail;
         this.score = score;
         this.comments = comments;
     }
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
+
+    public String getPostId() {
+        return postId;
+    }
+
+    public void setPostId(String postId) {
+        this.postId = postId;
+    }
+
 
     public String getTitle() {
         return title;
@@ -46,14 +58,6 @@ public class Post {
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    public String getSelfText() {
-        return selfText;
-    }
-
-    public void setSelfText(String selfText) {
-        this.selfText = selfText;
     }
 
     public String getAuthor() {

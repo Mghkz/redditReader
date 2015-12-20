@@ -163,6 +163,7 @@ public class SubRedditListFragment extends Fragment {
         switch (item.getItemId()) {
             case R.id.refreshBtn:
                 doJsonRequest(rNaam,false);
+                //TODO: FIX ENDLESS SCROLL AFTER REFRESH BUTTON PRESS
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -194,15 +195,19 @@ public class SubRedditListFragment extends Fragment {
 
                             }
 
+                            //Get ?after= parameter from json body
                             JsonParser jsonParser = new JsonParser();
                             JsonObject gsonObject = (JsonObject)jsonParser.parse(response.toString());
                             JsonObject data = (JsonObject) gsonObject.get("data");
                             sAfter = data.get("after").getAsString();
 
 
+                            //Fill recyclerview with posts
                             PostAdapter adapter = new PostAdapter(posts.getPosts());
                             rvPosts.setAdapter(adapter);
+                            //Refresh
                             adapter.notifyDataSetChanged();
+                            //Set position to start of new posts
                             mLayoutManager.scrollToPosition(posts.getPosts().size()-25);
 
 

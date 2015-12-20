@@ -1,20 +1,28 @@
 package hogent.jeroencornelis.redditreader;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageRequest;
 
 import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import hogent.jeroencornelis.redditreader.domain.Post;
+import hogent.jeroencornelis.redditreader.network.RequestController;
+
 //TODO: CLEANUP COMMENTS
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder>{
 
@@ -24,7 +32,9 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder>{
     public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         // Your holder should contain a member variable
         // for any view that will be set as you render a row
-        @Bind(R.id.layout)
+        @Bind(R.id.linearLayout)
+        LinearLayout linearLayout;
+        @Bind(R.id.relativeLayout)
         RelativeLayout relativeLayout;
         @Bind(R.id.score)
         TextView scoreTextView;
@@ -122,14 +132,44 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder>{
         commentTextView.setText(
               String.format("%d %s", post.getComments(),"comments")
         );
-
         ImageView imageView = viewHolder.imageView;
 
+        //Log.d("Image ulr","|"+post.getThumbnail()+"|");
+
+        switch (post.getThumbnail())
+        {
+            case "":
+            case "default":
+            case "self":
+                viewHolder.linearLayout.removeView(imageView);
+                break;
+            case "nsfw":
+                imageView.setImageResource(R.drawable.nsfw_icon);
+                break;
+            default:
+                imageRequest(post.getThumbnail(),imageView);
+        }
     }
 
     // Return the total count of items
     @Override
     public int getItemCount() {
         return mPosts.size();
+    }
+    public void imageRequest(String url, final ImageView imageView)
+    {
+        ImageRequest request = new ImageRequest(url,
+                new Response.Listener<Bitmap>() {
+                    @Override
+                    public void onResponse(Bitmap bitmap) {
+                        imageView.setImageBitmap(bitmap);
+                    }
+                }, 0, 0, null,
+                new Response.ErrorListener() {
+                    public void onErrorResponse(VolleyError error) {
+                        imageView.setImageResource(R.drawable.no_image_available);
+                    }
+                });
+        RequestController.getInstance().addToRequestQueue(request);
     }
 }
