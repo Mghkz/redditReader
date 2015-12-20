@@ -167,7 +167,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder>{
                 }, 0, 0, null,
                 new Response.ErrorListener() {
                     public void onErrorResponse(VolleyError error) {
-                        imageView.setImageResource(R.drawable.no_image_available);
+                        imageView.setImageResource(R.drawable.no_image);
                     }
                 });
         RequestController.getInstance().addToRequestQueue(request);

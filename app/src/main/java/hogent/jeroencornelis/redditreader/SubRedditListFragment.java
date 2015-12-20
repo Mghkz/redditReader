@@ -1,6 +1,7 @@
 package hogent.jeroencornelis.redditreader;
 
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -13,6 +14,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.VolleyLog;
@@ -33,6 +35,9 @@ import hogent.jeroencornelis.redditreader.domain.Post;
 import hogent.jeroencornelis.redditreader.domain.Posts;
 import hogent.jeroencornelis.redditreader.network.RedditPostsDeserializer;
 import hogent.jeroencornelis.redditreader.network.RequestController;
+import hogent.jeroencornelis.redditreader.persistency.DaoMaster;
+import hogent.jeroencornelis.redditreader.persistency.DaoSession;
+import hogent.jeroencornelis.redditreader.persistency.PostDao;
 
 
 public class SubRedditListFragment extends Fragment {
@@ -56,7 +61,7 @@ public class SubRedditListFragment extends Fragment {
     //Gson parser for json data
     private Gson gson;
 
-    //Items needed for endless scrolling
+    //variables needed for endless scrolling
     private int previousTotal = 0;
     private boolean loading = true;
     private int visibleThreshold = 5;
@@ -64,6 +69,11 @@ public class SubRedditListFragment extends Fragment {
     private int visibleItemCount;
     private int totalItemCount;
 
+    //Database variables
+    private SQLiteDatabase db;
+    private DaoMaster daoMaster;
+    private DaoSession daoSession;
+    private PostDao postDao;
 
 
 
@@ -99,6 +109,14 @@ public class SubRedditListFragment extends Fragment {
             rNaam = args.getString("rNaam");
             doJsonRequest(rNaam,false);
         }
+
+        //Database
+        DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(context, "post-db", null);
+        db = helper.getWritableDatabase();
+        daoMaster = new DaoMaster(db);
+        daoSession = daoMaster.newSession();
+        postDao = daoSession.getPostDao();
+
         //Init Recyclerview
         mLayoutManager = new LinearLayoutManager(context);
         rvPosts.setLayoutManager(mLayoutManager);
@@ -187,6 +205,7 @@ public class SubRedditListFragment extends Fragment {
                             VolleyLog.v("Response:%n %s", response.toString(4));
                             /* GSON */
                             Posts postsFromJson = gson.fromJson(response.toString(), Posts.class);
+                            storeNotesInDatabase(postsFromJson.getPosts());
                             if(!after) {
                                 posts = postsFromJson;
                             }
@@ -194,6 +213,7 @@ public class SubRedditListFragment extends Fragment {
                                 posts.getPosts().addAll(postsFromJson.getPosts());
 
                             }
+
 
                             //Get ?after= parameter from json body
                             JsonParser jsonParser = new JsonParser();
@@ -223,6 +243,15 @@ public class SubRedditListFragment extends Fragment {
         });
         RequestController.getInstance().addToRequestQueue(jsObjRequest);
     }
+
+    public void storeNotesInDatabase(ArrayList<Post> posts)
+    {
+        for (Post p : posts) {
+            postDao.insert(p);
+            Log.d("DaoExample", "Inserted new note, ID: " + p.getId());
+        }
+    }
+
 
     /**
      * This interface must be implemented by activities that contain this
