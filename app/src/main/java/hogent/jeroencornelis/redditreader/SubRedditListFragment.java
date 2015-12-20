@@ -28,16 +28,19 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import hogent.jeroencornelis.redditreader.domain.Post;
 import hogent.jeroencornelis.redditreader.domain.Posts;
+import hogent.jeroencornelis.redditreader.domain.Subreddit;
 import hogent.jeroencornelis.redditreader.network.RedditPostsDeserializer;
 import hogent.jeroencornelis.redditreader.network.RequestController;
 import hogent.jeroencornelis.redditreader.persistency.DaoMaster;
 import hogent.jeroencornelis.redditreader.persistency.DaoSession;
 import hogent.jeroencornelis.redditreader.persistency.PostDao;
+import hogent.jeroencornelis.redditreader.persistency.SubredditDao;
 
 
 public class SubRedditListFragment extends Fragment {
@@ -54,6 +57,8 @@ public class SubRedditListFragment extends Fragment {
     String url = "";
     //Posts
     Posts posts;
+    //Subreddit
+    Subreddit subreddit;
 
     private Context context;
     private LinearLayoutManager mLayoutManager;
@@ -74,6 +79,7 @@ public class SubRedditListFragment extends Fragment {
     private DaoMaster daoMaster;
     private DaoSession daoSession;
     private PostDao postDao;
+    private SubredditDao subredditDao;
 
 
 
@@ -107,7 +113,8 @@ public class SubRedditListFragment extends Fragment {
         Bundle args = this.getArguments();
         if(args != null) {
             rNaam = args.getString("rNaam");
-            doJsonRequest(rNaam,false);
+            this.subreddit = new Subreddit(null,rNaam,"");
+            //doJsonRequest(rNaam,false);
         }
 
         //Database
@@ -116,6 +123,11 @@ public class SubRedditListFragment extends Fragment {
         daoMaster = new DaoMaster(db);
         daoSession = daoMaster.newSession();
         postDao = daoSession.getPostDao();
+        subredditDao = daoSession.getSubredditDao();
+
+        //Clear database
+        //postDao.deleteAll();
+        //subredditDao.deleteAll();
 
         //Init Recyclerview
         mLayoutManager = new LinearLayoutManager(context);
@@ -146,6 +158,33 @@ public class SubRedditListFragment extends Fragment {
                 }
             }
         });
+
+        //Look if the database contains this subreddit
+        boolean foundSubredditInDatabase = false;
+        List<Subreddit> subreddits = subredditDao.loadAll();
+        for(Subreddit s : subreddits)
+        {
+            if(s.getName().toLowerCase().equals(rNaam.toLowerCase()))
+            {
+                foundSubredditInDatabase = true;
+                subreddit = s;
+            }
+        }
+        if(!foundSubredditInDatabase)
+            subredditDao.insert(subreddit);
+
+        //If the subreddit contains posts load these instead of json
+        List<Post> postsFromDb = subreddit.getPosts();
+        if(postsFromDb.isEmpty())
+            doJsonRequest(rNaam,false);
+        else
+        {
+            posts = new Posts();
+            posts.setPosts(new ArrayList<Post>(postsFromDb));
+            loadPostInView();
+        }
+
+
 
         return view;
     }
@@ -183,6 +222,11 @@ public class SubRedditListFragment extends Fragment {
                 doJsonRequest(rNaam,false);
                 //TODO: FIX ENDLESS SCROLL AFTER REFRESH BUTTON PRESS
                 return true;
+            case R.id.clearBtn:
+                //Clear database
+                postDao.deleteAll();
+                subredditDao.deleteAll();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -205,31 +249,28 @@ public class SubRedditListFragment extends Fragment {
                             VolleyLog.v("Response:%n %s", response.toString(4));
                             /* GSON */
                             Posts postsFromJson = gson.fromJson(response.toString(), Posts.class);
-                            storeNotesInDatabase(postsFromJson.getPosts());
                             if(!after) {
                                 posts = postsFromJson;
+                                //Delete previously stored posts and replace them with new ones
+                                subreddit.getPosts().clear();
+                                subredditDao.update(subreddit);
+                                storeNotesInDatabase(posts.getPosts());
                             }
                             else {
                                 posts.getPosts().addAll(postsFromJson.getPosts());
-
+                                //Add extra posts
+                                storeNotesInDatabase(postsFromJson.getPosts());
                             }
-
 
                             //Get ?after= parameter from json body
                             JsonParser jsonParser = new JsonParser();
                             JsonObject gsonObject = (JsonObject)jsonParser.parse(response.toString());
                             JsonObject data = (JsonObject) gsonObject.get("data");
                             sAfter = data.get("after").getAsString();
+                            subreddit.setAfter(sAfter);
+                            subredditDao.update(subreddit);
 
-
-                            //Fill recyclerview with posts
-                            PostAdapter adapter = new PostAdapter(posts.getPosts());
-                            rvPosts.setAdapter(adapter);
-                            //Refresh
-                            adapter.notifyDataSetChanged();
-                            //Set position to start of new posts
-                            mLayoutManager.scrollToPosition(posts.getPosts().size()-25);
-
+                            loadPostInView();
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -244,9 +285,20 @@ public class SubRedditListFragment extends Fragment {
         RequestController.getInstance().addToRequestQueue(jsObjRequest);
     }
 
+    public void loadPostInView(){
+        //Fill recyclerview with posts
+        PostAdapter adapter = new PostAdapter(posts.getPosts());
+        rvPosts.setAdapter(adapter);
+        //Refresh
+        adapter.notifyDataSetChanged();
+        //Set position to start of new posts
+        mLayoutManager.scrollToPosition(posts.getPosts().size()-25);
+    }
+
     public void storeNotesInDatabase(ArrayList<Post> posts)
     {
         for (Post p : posts) {
+            p.setSubreddit(subreddit);
             postDao.insert(p);
             Log.d("DaoExample", "Inserted new note, ID: " + p.getId());
         }

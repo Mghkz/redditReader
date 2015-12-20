@@ -4,6 +4,14 @@
     tools:context=".MainActivity">
 
     <item
+        android:id="@+id/clearBtn"
+        android:title="@string/refresh_button"
+        android:icon="@drawable/ic_cached_black_24dp"
+        android:orderInCategory="1"
+        app:showAsAction="always"
+        />
+
+    <item
         android:id="@+id/refreshBtn"
         android:title="@string/refresh_button"
         android:icon="@drawable/ic_cached_black_24dp"

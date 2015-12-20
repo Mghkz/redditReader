@@ -14,6 +14,7 @@ public class Posts {
         this.posts = new ArrayList<>();
     }
 
+
     public Posts(ArrayList<Post> posts) {
         this.posts = posts;
     }
@@ -21,8 +22,13 @@ public class Posts {
     public void addPost(Post post){
         posts.add(post);
     }
+
     public void removePost(Post post){
         posts.remove(post);
+    }
+
+    public void setPosts(ArrayList<Post> posts) {
+        this.posts = posts;
     }
 
     public ArrayList<Post> getPosts() {

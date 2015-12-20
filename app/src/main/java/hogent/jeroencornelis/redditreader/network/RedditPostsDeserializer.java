@@ -27,6 +27,16 @@ public class RedditPostsDeserializer implements JsonDeserializer<Posts> {
         {
             JsonObject jObj = (JsonObject) obj;
             JsonObject jObjData = (JsonObject) jObj.get("data");
+            /*
+                this.id = id;
+                this.postId = postId;
+                this.title = title;
+                this.author = author;
+                this.thumbnail = thumbnail;
+                this.score = score;
+                this.comments = comments;
+                this.subredditId = subredditId;
+             */
             Post p = new Post(
                     null,
                     jObjData.get("id").getAsString(),
