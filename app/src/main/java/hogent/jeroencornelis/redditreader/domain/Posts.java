@@ -8,12 +8,21 @@ import java.util.ArrayList;
 public class Posts {
 
     private ArrayList<Post> posts;
+    private String after ="";
 
     public Posts() {
 
         this.posts = new ArrayList<>();
     }
 
+
+    public String getAfter() {
+        return after;
+    }
+
+    public void setAfter(String after) {
+        this.after = after;
+    }
 
     public Posts(ArrayList<Post> posts) {
         this.posts = posts;

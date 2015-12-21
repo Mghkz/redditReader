@@ -1,5 +1,6 @@
 package hogent.jeroencornelis.redditreader.domain;
 
+import java.util.ArrayList;
 import java.util.List;
 import de.greenrobot.dao.DaoException;
 import hogent.jeroencornelis.redditreader.persistency.DaoSession;
@@ -65,6 +66,10 @@ public class Subreddit {
 
     public void setAfter(String after) {
         this.after = after;
+    }
+
+    public void setPosts(ArrayList<Post> posts) {
+        this.posts = posts;
     }
 
     /** To-many relationship, resolved on first access (and after reset). Changes to to-many relations are not persisted, make changes to the target entity. */

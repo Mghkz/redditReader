@@ -66,6 +66,8 @@ public class SubRedditListFragment extends Fragment {
     //Gson parser for json data
     private Gson gson;
 
+    private StringBuilder stringBuilder;
+
     //variables needed for endless scrolling
     private int previousTotal = 0;
     private boolean loading = true;
@@ -220,12 +222,14 @@ public class SubRedditListFragment extends Fragment {
         switch (item.getItemId()) {
             case R.id.refreshBtn:
                 doJsonRequest(rNaam,false);
-                //TODO: FIX ENDLESS SCROLL AFTER REFRESH BUTTON PRESS
+                // FIX FOR ENDLESS SCROLL AFTER REFRESH BUTTON PRESS
+                previousTotal = 0;
                 return true;
             case R.id.clearBtn:
                 //Clear database
                 postDao.deleteAll();
                 subredditDao.deleteAll();
+                previousTotal = 0;
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -235,11 +239,17 @@ public class SubRedditListFragment extends Fragment {
 
     public void doJsonRequest(final String rNaam, final boolean after)
     {
-        //TODO: REPLACE WITH STRING BUILDER
-        if(!after)
-        url = "https://www.reddit.com/r/" + rNaam + "/hot.json";
-        else
-        url = "https://www.reddit.com/r/" + rNaam + "/hot.json?after="+sAfter;
+        stringBuilder = new StringBuilder("");
+        stringBuilder.append("https://www.reddit.com/r/");
+        stringBuilder.append(rNaam);
+        stringBuilder.append("/hot.json");
+
+        if(after) {
+            stringBuilder.append("?after=");
+            stringBuilder.append(sAfter);
+
+        }
+        url = stringBuilder.toString();
 
         JsonObjectRequest jsObjRequest = new JsonObjectRequest(url,null,
                 new Response.Listener<JSONObject>() {
@@ -249,12 +259,15 @@ public class SubRedditListFragment extends Fragment {
                             VolleyLog.v("Response:%n %s", response.toString(4));
                             /* GSON */
                             Posts postsFromJson = gson.fromJson(response.toString(), Posts.class);
+
+                            //Decides if posts should be renewed or added to the already existing posts
                             if(!after) {
                                 posts = postsFromJson;
                                 //Delete previously stored posts and replace them with new ones
                                 subreddit.getPosts().clear();
-                                subredditDao.update(subreddit);
+                                //subreddit.setPosts(posts.getPosts());
                                 storeNotesInDatabase(posts.getPosts());
+                                subredditDao.update(subreddit);
                             }
                             else {
                                 posts.getPosts().addAll(postsFromJson.getPosts());
@@ -262,11 +275,7 @@ public class SubRedditListFragment extends Fragment {
                                 storeNotesInDatabase(postsFromJson.getPosts());
                             }
 
-                            //Get ?after= parameter from json body
-                            JsonParser jsonParser = new JsonParser();
-                            JsonObject gsonObject = (JsonObject)jsonParser.parse(response.toString());
-                            JsonObject data = (JsonObject) gsonObject.get("data");
-                            sAfter = data.get("after").getAsString();
+                            sAfter = posts.getAfter();
                             subreddit.setAfter(sAfter);
                             subredditDao.update(subreddit);
 

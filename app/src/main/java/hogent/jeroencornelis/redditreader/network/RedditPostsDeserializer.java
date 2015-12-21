@@ -22,6 +22,7 @@ public class RedditPostsDeserializer implements JsonDeserializer<Posts> {
         JsonObject data = (JsonObject) jsonObject.get("data");
         JsonArray children = data.getAsJsonArray("children");
         Posts posts = new Posts();
+        posts.setAfter(data.get("after").getAsString());
 
         for(JsonElement obj : children)
         {
@@ -37,6 +38,8 @@ public class RedditPostsDeserializer implements JsonDeserializer<Posts> {
                 this.comments = comments;
                 this.subredditId = subredditId;
              */
+
+
             Post p = new Post(
                     null,
                     jObjData.get("id").getAsString(),
@@ -49,6 +52,7 @@ public class RedditPostsDeserializer implements JsonDeserializer<Posts> {
             posts.addPost(p);
 
         }
+
         return posts;
     }
 }
