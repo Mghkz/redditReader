@@ -1,4 +1,4 @@
-package hogent.jeroencornelis.redditreader;
+package hogent.jeroencornelis.redditreader.domain;
 
 /**
  * Created by Jeroen-Lenovo on 23/11/2015.

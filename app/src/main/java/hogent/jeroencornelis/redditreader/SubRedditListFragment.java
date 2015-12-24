@@ -275,7 +275,8 @@ public class SubRedditListFragment extends Fragment {
                                 storeNotesInDatabase(postsFromJson.getPosts());
                             }
 
-                            sAfter = posts.getAfter();
+                            subredditDao.refresh(subreddit);
+                            sAfter = postsFromJson.getAfter();
                             subreddit.setAfter(sAfter);
                             subredditDao.update(subreddit);
 

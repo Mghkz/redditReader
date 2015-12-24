@@ -1,5 +1,10 @@
 package hogent.jeroencornelis.redditreader.domain;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import java.io.Serializable;
+
 import de.greenrobot.dao.DaoException;
 import hogent.jeroencornelis.redditreader.persistency.DaoSession;
 import hogent.jeroencornelis.redditreader.persistency.PostDao;
@@ -8,7 +13,7 @@ import hogent.jeroencornelis.redditreader.persistency.SubredditDao;
 /**
  * Entity mapped to table "POSTS".
  */
-public class Post {
+public class Post implements Parcelable {
 
     private Long id;
     private String postId;
@@ -172,4 +177,50 @@ public class Post {
         myDao.refresh(this);
     }
 
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    /*
+    private Long id;
+    private String postId;
+    private String title;
+    private String author;
+    private String thumbnail;
+    private Integer score;
+    private Integer comments;
+    private long subredditId;
+    */
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(id);
+        dest.writeString(postId);
+        dest.writeString(title);
+        dest.writeString(author);
+        dest.writeString(thumbnail);
+        dest.writeInt(score);
+        dest.writeInt(comments);
+        dest.writeLong(subredditId);
+    }
+
+    public static final Parcelable.Creator<Post> CREATOR = new Parcelable.Creator<Post>() {
+        public Post createFromParcel(Parcel in) {
+            return new Post(in);
+        }
+
+        public Post[] newArray(int size) {
+            return new Post[size];
+        }
+    };
+    private Post(Parcel in) {
+        id = in.readLong();
+        postId = in.readString();
+        title = in.readString();
+        author = in.readString();
+        thumbnail = in.readString();
+        score = in.readInt();
+        comments = in.readInt();
+        subredditId = in.readLong();
+    }
 }

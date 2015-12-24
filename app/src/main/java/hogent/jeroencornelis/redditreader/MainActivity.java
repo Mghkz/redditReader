@@ -11,6 +11,7 @@ import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 
+import hogent.jeroencornelis.redditreader.domain.Constants;
 
 
 public class MainActivity extends AppCompatActivity implements SubRedditListFragment.OnFragmentInteractionListener {

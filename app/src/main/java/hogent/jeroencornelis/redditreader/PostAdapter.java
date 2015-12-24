@@ -1,6 +1,7 @@
 package hogent.jeroencornelis.redditreader;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -78,7 +79,8 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder>{
             public void onThumbnail(ImageView callerImage);
         }
     }
-    // Store a member variable for the contacts
+    private Post post;
+    // Store a member variable for the posts
     private List<Post> mPosts;
 
     // Pass in the contact array into the constructor
@@ -90,7 +92,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder>{
     // Usually involves inflating a layout from XML and returning the holder
     @Override
     public PostAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        Context context = parent.getContext();
+        final Context context = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
 
         // Inflate the custom layout
@@ -100,7 +102,10 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder>{
         ViewHolder viewHolder = new ViewHolder(contactView,new PostAdapter.ViewHolder.IMyViewHolderClicks() {
             @Override
             public void onText(View caller) {
-                Log.d("listener","Clicked on a textField");
+                Log.d("listener", "Clicked on a textField");
+                Intent intent = new Intent(context,SubredditPostActivity.class);
+                intent.putExtra("post",post);
+                context.startActivity(intent);
             }
 
             @Override
@@ -116,7 +121,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder>{
     @Override
     public void onBindViewHolder(PostAdapter.ViewHolder viewHolder, int position) {
         // Get the data model based on position
-        Post post = mPosts.get(position);
+        post = mPosts.get(position);
 
         // Set item views based on the data model
         TextView scoreTextView = viewHolder.scoreTextView;
