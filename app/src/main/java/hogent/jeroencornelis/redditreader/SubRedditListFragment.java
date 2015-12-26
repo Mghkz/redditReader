@@ -228,7 +228,7 @@ public class SubRedditListFragment extends Fragment {
             case R.id.clearBtn:
                 //Clear database
                 postDao.deleteAll();
-                subredditDao.deleteAll();
+                //subredditDao.deleteAll();
                 previousTotal = 0;
                 return true;
             default:
