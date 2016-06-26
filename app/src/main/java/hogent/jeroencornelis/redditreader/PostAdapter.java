@@ -67,23 +67,24 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder>{
 
         @Override
         public void onClick(View v) {
+            int position = getAdapterPosition();
             if (v instanceof ImageView){
-                mListener.onThumbnail((ImageView) v);
+                mListener.onThumbnail((ImageView) v,position);
             } else {
-                mListener.onText(v);
+                mListener.onText(v,position);
             }
         }
 
         public static interface IMyViewHolderClicks {
-            public void onText(View caller);
-            public void onThumbnail(ImageView callerImage);
+            public void onText(View caller,int pos);
+            public void onThumbnail(ImageView callerImage,int pos);
         }
     }
     private Post post;
+
     // Store a member variable for the posts
     private List<Post> mPosts;
 
-    // Pass in the contact array into the constructor
     public PostAdapter(List<Post> posts) {
         mPosts = posts;
     }
@@ -101,15 +102,15 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder>{
         // Return a new holder instance
         ViewHolder viewHolder = new ViewHolder(contactView,new PostAdapter.ViewHolder.IMyViewHolderClicks() {
             @Override
-            public void onText(View caller) {
+            public void onText(View caller,int pos) {
                 Log.d("listener", "Clicked on a textField");
                 Intent intent = new Intent(context,SubredditPostActivity.class);
-                intent.putExtra("post",post);
+                intent.putExtra("post",mPosts.get(pos));
                 context.startActivity(intent);
             }
 
             @Override
-            public void onThumbnail(ImageView callerImage) {
+            public void onThumbnail(ImageView callerImage, int pos) {
                 Log.d("listener","Clicked on a ImageView");
             }
         });

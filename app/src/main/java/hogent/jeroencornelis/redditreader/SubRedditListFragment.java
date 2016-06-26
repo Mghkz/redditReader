@@ -120,6 +120,7 @@ public class SubRedditListFragment extends Fragment {
         }
 
         //Database
+        //TODO: Make this singleton
         DaoMaster.DevOpenHelper helper = new DaoMaster.DevOpenHelper(context, "post-db", null);
         db = helper.getWritableDatabase();
         daoMaster = new DaoMaster(db);
