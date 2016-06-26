@@ -183,7 +183,7 @@ public class SubRedditListFragment extends Fragment {
         else
         {
             posts = new Posts();
-            posts.setPosts(new ArrayList<Post>(postsFromDb));
+            posts.setPosts(new ArrayList<>(postsFromDb));
             loadPostInView();
         }
 

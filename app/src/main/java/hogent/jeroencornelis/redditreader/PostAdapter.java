@@ -18,6 +18,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageRequest;
 
 import java.util.List;
+import java.util.Locale;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -136,7 +137,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder>{
 
         TextView commentTextView = viewHolder.commentTextView;
         commentTextView.setText(
-              String.format("%d %s", post.getComments(),"comments")
+              String.format(Locale.ENGLISH,"%d %s", post.getComments(),"comments")
         );
         ImageView imageView = viewHolder.imageView;
 
